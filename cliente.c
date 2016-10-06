@@ -2,7 +2,7 @@
 /*								*/
 /*          servidor.c          */
 /*								*/
-/*  André Viníicus de Oliveira  *
+/*   André Vinícus de Oliveira  */
 /*          2013065935			*/
 /*								*/
 /********************************/

@@ -1,6 +1,6 @@
 /********************************/
 /*								*/
-/*         biblioteca.ch        */
+/*         biblioteca.h        */
 /*								*/
 /*   André Vinicus de Oliveira  */
 /*          2013065935			*/

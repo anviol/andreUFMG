@@ -7,27 +7,8 @@
 #define LEN 4096
 
 int main(int argc, char **argv){	
-	/*struct sockaddr_in6 serv, client;
-    int s;
- 	uint16_t Port;
- 	int ClientAddrLen = sizeof(client);
- 	Port = atoi(argv[1]);
- 	s = socket(AF_INET6, SOCK_DGRAM, 0);	
-    memset(&serv, 0, sizeof(serv));
-    serv.sin6_family = AF_INET6;
-    serv.sin6_port   = htons(Port);
-    serv.sin6_addr   = in6addr_any;
-    bind(s,(struct sockaddr *)&serv,sizeof(serv));
-	listen(s, 10);*/
-
-
-
-
-
-
 	struct sockaddr_in6 cliente, servidor;
 	int tam_cliente, meuSocket, enviei = 0, contMensagens = 0, i = 0;
-	// MTU padrão pela IETF
 	char buffer[556];
 
 	Mensagem mesagensRecebidas[LEN/4];

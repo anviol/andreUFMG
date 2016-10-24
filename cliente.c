@@ -7,28 +7,7 @@
 #define LEN 4096
 
 int main(int argc, char **argv){
-	//struct addrinfo Hints, *Res=NULL;
-    //struct sockaddr_in6 ServerAddr;
-    /*memset(&Hints, 0x00, sizeof(Hints));
-    Hints.ai_flags = AI_V4MAPPED;
-    Hints.ai_family = AF_UNSPEC;
-    Hints.ai_socktype = SOCK_DGRAM;
-    Rc = inet_pton(AF_INET, argv[1], &ServerAddr);
-    if (Rc == 1){ // endereco valido de IPv4?
-       Hints.ai_family = AF_INET;
-       Hints.ai_flags = AI_NUMERICHOST;
-    }
-    else{
-       Rc = inet_pton(AF_INET6, argv[1], &ServerAddr);
-       if (Rc == 1){ // endereco valido de IPv6?
-          Hints.ai_family = AF_INET6;
-          Hints.ai_flags = AI_NUMERICHOST;
-       }
-    }
-    getaddrinfo(argv[1], argv[2], &Hints, &Res); 
-    UdpSocket = socket(Res->ai_family, Res->ai_socktype, Res->ai_protocol);*/
-
-    struct addrinfo auxiliar, *socketInfo;
+	struct addrinfo auxiliar, *socketInfo;
 	struct sockaddr_in6 servidor; 
 	int tamanhoServidor, meuSocket, conectado = 1, numeroMensagem = 0, slen = 0, i = 0;
 	char envia[556];

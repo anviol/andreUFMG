@@ -136,19 +136,13 @@ int conectaSocketCliente(char *endereco, char *porta){
 
     memset(&auxiliar, 0x0, sizeof auxiliar);
     auxiliar.ai_family = AF_UNSPEC;
-    auxiliar.ai_socktype = SOCK_STREAM;
+    auxiliar.ai_socktype = SOCK_DGRAM;
 
 	getaddrinfo(endereco, porta, &auxiliar, &socketInfo);
 
     meuSocket = socket(socketInfo->ai_family, socketInfo->ai_socktype, socketInfo->ai_protocol);
 
     freeaddrinfo(socketInfo);
-
-    if(connect(meuSocket, socketInfo->ai_addr, socketInfo->ai_addrlen) < 0)
-    {
-    	close(meuSocket);
-    	return -1;
-    }
 
     return meuSocket;
 }
@@ -165,12 +159,12 @@ int conectaSocketServidor(char *porta){
 	local6.sin6_port = htons(atoi(porta));
 	local6.sin6_addr = in6addr_any;
 
-	meuSocket = socket(AF_INET6, SOCK_STREAM, 0);
+	meuSocket = socket(AF_INET6, SOCK_DGRAM, 0);
 	setsockopt(meuSocket, SOL_SOCKET, SO_REUSEADDR, &confirmacao, sizeof(int)); //anula as mensagens de erro de porta sendo usada
 	bind(meuSocket, (struct sockaddr *) &local6, sizeof(local6));
 	listen(meuSocket, 1);
 
-	socketCliente = accept(meuSocket, (struct sockaddr *) &local6, &len4);
+	socketCliente = meuSocket;
 
 	close(meuSocket);
 	return socketCliente;

@@ -1,72 +1,62 @@
-/********************************/
-/*								*/
-/*          servidor.c          */
-/*								*/
-/*   André Vinicus de Oliveira  */
-/*          2013065935			*/
-/*								*/
-/********************************/
-
-//Incluindo bibliotecas para implementação das funções comuns em C
 #include <stdio.h>
-#include <stdlib.h>
+#include <sys/socket.h>
+#include <netdb.h>
 #include <string.h>
-#include <errno.h>
-
-//Incluindo minha biblioteca criada para esse programa
 #include "biblioteca.h"
 
-//Incluindo bibliotecas para conexão entre o servidor e o cliente
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-
-//Definição do tamanho das mensagens enviadas
 #define LEN 4096
 
-//Início do programa principal
-int main (int argc, char **argv){
+int main(int argc, char **argv){
 
-	//Declaração das variáveis utilizadas durante o programa
+	struct sockaddr_in servidor,cliente; 
+	int tam_cliente, meuSocket, conectado = 1, numeroMensagem = 0, slen = 0, i = 0;
+	char envia[556];
+	char recebe[556];
 	char buffer[LEN];
-	int meuSocket = 0, conectado = 1, slen = 0, numeroMensagem = 0, i = 0;
 
-	//Abrindo o socket do cliente
-	meuSocket = conectaSocketCliente(argv[1], argv[2]);
-	
-	//Verificando se o socket foi criado com sucesso
-	if (meuSocket == -1){
-		perror("socket ");
-		exit(1);
-	}else
-		printf("Socket criado com sucesso!\n");
+	meuSocket = socket(PF_INET, SOCK_DGRAM, 0); 
+	servidor.sin_family = AF_INET; // familia de endereços
+	servidor.sin_port = htons(atoi(argv[2])); // porta
+	// para usar um ip qualquer use inet_addr("10.10.10.10"); ao invés de htonl(INADDR_ANY)
+	//servidor.sin_addr.s_addr=htonl(INADDR_ANY);
+	servidor.sin_addr.s_addr = inet_addr(argv[1]);
 
-	slen = recv(meuSocket, buffer, LEN, 0);//Recebendo mensagem do servidor
-	buffer[slen - 1] = '\0'; //Retirando o excesso de \n
-	printf(">Servidor: %s\n", buffer);//Escrevendo na tela a mensagem recebida do servidor
+	memset(&envia, 0x0, sizeof envia);
+	memset(&recebe, 0x0, sizeof recebe);
 
-	//Iniciando o loop até que o comando 'Z' seja enviado
-	while (conectado){
+	printf("\n*** Bem vindo ao cliente ***\n");
 
+	while(conectado){
 		//Recebendo a mensagem do usuário que será enviada
 		printf(">Cliente: ");
 		fgets(buffer, LEN, stdin);
 
 		arrumaMensagem(buffer); //Ajustando de possíveis erros cometidos pelo usuário
 
+		memset(&envia, 0x0, sizeof envia);
+		memset(&recebe, 0x0, sizeof recebe);
+
 		//Detectando qual o comando que foi dado pelo usuário
 		switch (buffer[0]){
 			//Enviando para o servidor comando de gravação de tempo com o tempo a ser gravado
 			case 'D': case 'd':
-				send(meuSocket, buffer, strlen(buffer), 0);//Enviando a mensagem para o servidor
+				sendto(meuSocket, buffer, strlen(buffer), 0, (struct sockaddr*)&servidor, sizeof(struct sockaddr_in));
 				numeroMensagem++;//Contando quantas mensagens foram enviadas
+				tam_cliente = sizeof(struct sockaddr_in);
+				recvfrom(meuSocket, recebe, 556, MSG_WAITALL, (struct sockaddr*)&cliente, &tam_cliente);
+				printf("Recebi:%s\n",recebe);
 			break;
 
 			//Enviando para o servidor comando para retornar o valor de uma certa posição
 			//e recebendo o que se pede ao servidor
 			case 'C': case 'c':
-				send(meuSocket, buffer, strlen(buffer), 0);//Enviando solicitação para o servidor
-				slen = recv(meuSocket, buffer, LEN, 0);//Recebendo do servidor o tempo solicitado
+				sendto(meuSocket, buffer, strlen(buffer), 0, (struct sockaddr*)&servidor, sizeof(struct sockaddr_in));//Enviando solicitação para o servidor
+				tam_cliente = sizeof(struct sockaddr_in);
+				recvfrom(meuSocket, recebe, 556, MSG_WAITALL, (struct sockaddr*)&cliente, &tam_cliente);
+				printf("Recebi:%s\n",recebe);
+				sendto(meuSocket, "ACK!", strlen("ACK!"), 0
+					, (struct sockaddr*)&cliente, sizeof(struct sockaddr_in));
+				slen = recvfrom(meuSocket, buffer, 556, MSG_WAITALL, (struct sockaddr*)&cliente, &tam_cliente);//Recebendo do servidor o tempo solicitado
 				buffer[slen - 1] = '\0';//Tirando o excesso de \n
 				printf(">Servidor: %s\n", buffer);//Mostrando o tempo para o usuário
 			break;
@@ -74,19 +64,25 @@ int main (int argc, char **argv){
 			//Enviando para o servidor comando para retornar os valores de todas posições me ordem
 			//e recebendo o que se pede ao servidor
 			case 'O': case 'o':
-				send(meuSocket, buffer, strlen(buffer), 0);//Enviando comando solicitado
+				sendto(meuSocket, buffer, strlen(buffer), 0, (struct sockaddr*)&servidor, sizeof(struct sockaddr_in));//Enviando comando solicitado
+				tam_cliente = sizeof(struct sockaddr_in);
+				recvfrom(meuSocket, recebe, 556, MSG_WAITALL, (struct sockaddr*)&cliente, &tam_cliente);
+				printf("Recebi:%s\n",recebe);
 				for (i = 0; i < numeroMensagem; ++i){//Recebendo todas as mensagens de acordo com a quantidade enviada
-					slen = recv(meuSocket, buffer, LEN, 0);//Recebendo a posição de acordo com o contador
+					slen = recvfrom(meuSocket, buffer, 556, MSG_WAITALL, (struct sockaddr*)&cliente, &tam_cliente);//Recebendo a posição de acordo com o contador
 					buffer[slen - 1] = '\0';//Tirando o excesso de \n
 					printf(">Servidor: %s\n", buffer);//Mostrando para o usuário a resposta do servidor
-					send(meuSocket, "ack", strlen("ack"), 0);//Enviando para o servidor confirmação de recebimento
+					sendto(meuSocket, "ACK!", strlen("ACK!"), 0
+						, (struct sockaddr*)&cliente, sizeof(struct sockaddr_in));//Enviando para o servidor confirmação de recebimento
 				}				
 			break;
 
 			//Enviando para o servidor o comando para fechar
 			//e fechando a si mesmo
 			case 'Z': case 'z':
-				send(meuSocket, buffer, strlen(buffer), 0);//Enviando para o servidor o comando de fechar
+				sendto(meuSocket, buffer, strlen(buffer), 0, (struct sockaddr*)&servidor, sizeof(struct sockaddr_in));//Enviando comando solicitado
+				tam_cliente = sizeof(struct sockaddr_in);
+				recvfrom(meuSocket, recebe, 556, MSG_WAITALL, (struct sockaddr*)&cliente, &tam_cliente);//Enviando para o servidor o comando de fechar
 				conectado = 0;//Saindo do loop
 			break;
 
@@ -97,8 +93,5 @@ int main (int argc, char **argv){
 		}
 	}
 
-	//Deslocando o socket
-	close(meuSocket);	
-
-	return EXIT_SUCCESS;
+	close(meuSocket);
 }

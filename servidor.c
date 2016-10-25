@@ -24,19 +24,17 @@ int main(int argc, char **argv){
 	bind(meuSocket, (struct sockaddr*)&servidor, sizeof(servidor));
 
 
-	printf("*** Servidor Ativo***\n");
+	printf("\n*** Servidor Ativo***\n\n");
 
 	while(1){		
 		tam_cliente = sizeof(struct sockaddr_in6);
 		recvfrom(meuSocket, buffer, 556, MSG_WAITALL, (struct sockaddr*)&cliente, &tam_cliente);
 		arrumaMensagem(buffer);
-		printf(">Cliente: %s\n", buffer);
-		/*printf("Recebi:%s de <endereço:%s> <porta:%d>\n"
-			,buffer,inet_ntoa(cliente.sin_addr,ntohs(cliente.sin_port));*/
+		printf(">Cliente: %s", buffer);
 		enviei = sendto(meuSocket, "ACK!", strlen("ACK!"), 0
 			, (struct sockaddr*)&cliente, sizeof(struct sockaddr_in6));
 		if (enviei >= 0)
-			printf("Envio de ACK!\n");
+			printf("Envio de ACK!\n\n");
 		else{
 			error("sendto");
 			printf("Envio de falhou!\n");
@@ -63,8 +61,8 @@ int main(int argc, char **argv){
 						}
 						else{
 							//Envia mensagem de erro, caso posição não exista
-							sendto(meuSocket, "Essa posição não foi informada.\n"
-								, strlen("Essa posição não foi informada.\n"), 0, (struct sockaddr*)&cliente
+							sendto(meuSocket, "Essa posição não foi informada.\n\n"
+								, strlen("Essa posição não foi informada.\n\n"), 0, (struct sockaddr*)&cliente
 								, sizeof(struct sockaddr_in6));
 						}
 					break;
